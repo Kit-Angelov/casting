@@ -1,6 +1,30 @@
 from django.db import models
 # from django_countries.fields import CountryField
 # from cities.models import BaseCountry
+from django.contrib.auth.models import User
+
+
+class Contacts(models.Model):
+    """
+
+    """
+    email = models.CharField(max_length=30, verbose_name='Мыло')
+    phone_number = models.CharField(max_length=30, verbose_name='Мобилка')
+    email_img = models.ImageField(null=True, blank=True, verbose_name='')
+    phone_number_img = models.ImageField(null=True, blank=True)
+
+    def __str__(self):
+        return '{0}, {1}'.format(self.email, self.phone_number)
+
+
+class BaseUser(User):
+    avatar = models.ImageField()
+    check_params = models.BooleanField(default=False)
+    check_contacts = models.BooleanField(default=False)
+    contacts = models.OneToOneField(Contacts, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.username
 
 
 class HairColor(models.Model):
@@ -98,33 +122,20 @@ class Parameters(models.Model):
     eyecolor = models.ForeignKey(EyeColor, on_delete=models.CASCADE)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
+    # employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.pk)
 
 
-class Contacts(models.Model):
-    """
-
-    """
-    email = models.CharField(max_length=30, verbose_name='Мыло')
-    phone_number = models.CharField(max_length=30, verbose_name='Мобилка')
-    email_img = models.ImageField(null=True, blank=True, verbose_name='')
-    phone_number_img = models.ImageField(null=True, blank=True)
-
-    def __str__(self):
-        return '{0}, {1}'.format(self.email, self.phone_number)
-
-
-class Employee(models.Model):
+class Employee(BaseUser):
     """
         Наемник
     """
-    firstname = models.CharField(max_length=20, verbose_name='Фамилия')
-    lastname = models.CharField(max_length=20, verbose_name='Имя')
-    photo = models.ImageField(blank=True, null=True)
-    param_list = models.OneToOneField(Parameters, on_delete=models.CASCADE)
-    contacts = models.OneToOneField(Contacts, on_delete=models.CASCADE, blank=True, null=True)
+    # firstname = models.CharField(max_length=20, verbose_name='Фамилия')
+    # lastname = models.CharField(max_length=20, verbose_name='Имя')
+    # photo = models.ImageField(upload_to='photo_employee', blank=True, null=True)
+    param_list = models.OneToOneField(Parameters, on_delete=models.CASCADE, null=True, blank=True)
     professional_rating = models.FloatField(verbose_name='Рейтинг проф навыков')
     human_rating = models.FloatField(verbose_name='Рейтинг человеческих качеств')
 
@@ -147,7 +158,7 @@ class Employee(models.Model):
         return hum_rating
 
     def __str__(self):
-        return '{0}, {1}'.format(self.firstname, self.lastname)
+        return self.username
 
 
 class PortfolioElem(models.Model):
@@ -164,15 +175,15 @@ class PortfolioElem(models.Model):
         return self.name
 
 
-class Employer(models.Model):
+class Employer(BaseUser):
     """
         Наниматель
     """
-    firstname = models.CharField(max_length=20)
-    lastname = models.CharField(max_length=20)
+    class Meta:
+        verbose_name='Наниматель'
 
     def __str__(self):
-        return self.firstname
+        return self.username
 
 
 class CastingType(models.Model):
@@ -209,7 +220,7 @@ class Casting(models.Model):
     image = models.ImageField()
     description = models.TextField(max_length=1000)
     type = models.ForeignKey(CastingType)
-    owner = models.ForeignKey(Employee)
+    owner = models.ForeignKey(Employer)
 
     def __str__(self):
         return self.name
@@ -247,6 +258,9 @@ class Request(models.Model):
     employee = models.ForeignKey(Employee)
     status = models.ForeignKey(RequestStatus, on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = 'Наемник'
+
     def __str__(self):
         return str(self.pk)
 
@@ -276,3 +290,8 @@ class Review(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+
+class TestImgModel(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='test_img')
